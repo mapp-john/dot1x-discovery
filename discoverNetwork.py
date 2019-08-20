@@ -338,7 +338,7 @@ def runDiscovery(site_code = None, form=None):
         getDevicesForm(deviceList, form)
     else:
         getDevicesSQL(deviceList, site_code)
-    print('Using {NUM_THREADS} threads to discover {deviceList.qsize()} devices')
+    print(f'Using {NUM_THREADS} threads to discover {deviceList.qsize()} devices')
     outputList.put(('NONE', 'total_switches', deviceList.qsize(), 0,'NONE','NONE','NONE','NONE', 0,0, 0, 0, 0, 0, 0, 0, 'NONE'))
 
 
