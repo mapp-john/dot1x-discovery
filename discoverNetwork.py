@@ -8,7 +8,7 @@ import pymysql
 import netmiko
 import paramiko
 import traceback
-import threading
+from threading import Thread
 from sqlFunctions import *
 from time import sleep
 from datetime import datetime
@@ -329,8 +329,7 @@ def runDiscovery(site_code = None, form=None):
     outputList = queue.Queue()
     ouiOutputList = queue.Queue()
     intOutputList = queue.Queue()
-    threadList = [None] * NUM_THREADS
-
+    
 
 
     ### fill device queue with device information
@@ -345,12 +344,9 @@ def runDiscovery(site_code = None, form=None):
     ### start threads
     for i in range(NUM_THREADS):
         print(f'Starting thread {i}...')
-        threadList[i] = threading.Thread(target=threadedFunction, args=(username,password,deviceList,outputList,ouiOutputList,intOutputList))
-        threadList[i].start()
-    ouiThread = threading.Thread(target=ouiSQL, args=[ouiOutputList,site_code,form])
-    ouiThread.start()
-    intThread = threading.Thread(target=intSQL, args=[intOutputList,site_code,form])
-    intThread.start()
+        Thread(target=threadedFunction, args=(username,password,deviceList,outputList,ouiOutputList,intOutputList)).start()
+    Thread(target=ouiSQL, args=[ouiOutputList,site_code,form]).start()
+    Thread(target=intSQL, args=[intOutputList,site_code,form]).start()
 
     numDone = 0
     connection = pymysql.connect(host=os.environ['MYSQL_HOST2'],
@@ -381,12 +377,9 @@ def runDiscovery(site_code = None, form=None):
                     print(str(result))
         intOutputList.put('Finished')
         ouiOutputList.put('Finished')
-    for i in range(NUM_THREADS):
-        threadList[i].join()
-    ouiThread.join()
-    print('Completed Network Discovery')
+    print('!!!!! Completed Network Discovery !!!!!')
     # Generate HTML Files for Status tables
-    threading.Thread(target=BuildStatusTables).start()
+    Thread(target=BuildStatusTables).start()
     return
 
 password = os.environ['SERVICE_ACCOUNT_PASSWORD']
